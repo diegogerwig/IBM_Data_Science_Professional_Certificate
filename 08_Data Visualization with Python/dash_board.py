@@ -27,22 +27,47 @@ def load_data():
         print(f"Error al descargar o cargar los datos: {e}")
         print("Creando datos de muestra...")
         
-        # Código para generar datos sintéticos (similar a ejemplos anteriores)
-        # (se omite para brevedad, pero sería como en los scripts anteriores)
+        # Código para generar datos sintéticos
+        years = range(1980, 2023)
+        months = range(1, 13)
+        vehicle_types = ["Superminicar", "Smallfamilycar", "Mediumfamilycar", "Executivecar", "Sports"]
+        recession_years = [1980, 1981, 1982, 1991, 2000, 2001, 2007, 2008, 2009, 2020]
         
-        # Retornamos un pequeño conjunto de datos de ejemplo
-        return pd.DataFrame({
-            'Year': np.repeat(range(1980, 2023), 5),
-            'Month': np.tile(range(1, 6), 43),
-            'Automobile_Sales': np.random.randint(100, 500, 43 * 5),
-            'Recession': np.repeat([1, 0, 0, 1, 0], 43),
-            'Vehicle_Type': np.tile(['Superminicar', 'Smallfamilycar', 'Mediumfamilycar', 'Executivecar', 'Sports'], 43),
-            'Price': np.random.randint(10000, 50000, 43 * 5),
-            'Advertising_Expenditure': np.random.randint(1000, 10000, 43 * 5),
-            'Consumer_Confidence': np.random.uniform(50, 100, 43 * 5),
-            'Unemployment_Rate': np.random.uniform(3, 10, 43 * 5),
-            'GDP': np.random.randint(10000, 30000, 43 * 5),
-        })
+        data = []
+        for year in years:
+            for month in range(1, 13):
+                for vtype in vehicle_types:
+                    is_recession = year in recession_years
+                    
+                    # Calcular ventas base
+                    base_sales = 200 + (year - 1980) * 5
+                    
+                    # Aplicar factores
+                    sales = base_sales * (0.7 if is_recession else 1.0)
+                    sales *= 1.2 if vtype == "Superminicar" else 1.0
+                    sales *= 0.9 if vtype == "Executivecar" and is_recession else 1.0
+                    
+                    # Añadir estacionalidad
+                    sales *= 1.2 if month in [3, 4, 5] else 1.0  # Más ventas en primavera
+                    
+                    # Añadir ruido aleatorio
+                    sales += np.random.normal(0, 20)
+                    
+                    # Añadir a los datos
+                    data.append({
+                        "Year": year,
+                        "Month": month,
+                        "Automobile_Sales": max(100, sales),
+                        "Recession": 1 if is_recession else 0,
+                        "Vehicle_Type": vtype,
+                        "Price": np.random.randint(10000, 50000),
+                        "Advertising_Expenditure": np.random.randint(1000, 10000),
+                        "Consumer_Confidence": np.random.uniform(50, 100),
+                        "Unemployment_Rate": np.random.uniform(3, 10) if not is_recession else np.random.uniform(7, 15),
+                        "GDP": np.random.randint(10000, 30000),
+                    })
+        
+        return pd.DataFrame(data)
 
 # Cargar los datos
 df = load_data()
@@ -346,4 +371,4 @@ def statistics_type_to_text(statistics_type):
 
 # Ejecutar la aplicación
 if __name__ == '__main__':
-    app.run_server(debug=True)
+    app.run(debug=True)
